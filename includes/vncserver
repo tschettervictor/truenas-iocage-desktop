@@ -1,0 +1,57 @@
+#!/bin/sh
+
+# Download this file
+# cd /usr/local/etc/rc.d && fetch --no-verify-peer https://gist.githubusercontent.com/PhilZ-cwm6/bdc85494725bd1c1443b4db0f7f306e4/raw/64f22491e41b04398c69a80773aaa042f5ed0d64/vncserver
+#
+# Make the file executable with:
+# /usr/local/etc/rc.d/vncserver (chmod +x)
+#
+# add to /etc/rc.conf
+# vncserver_enable="YES"
+#
+# Edit below variables for the VNC server options
+
+# PROVIDE: vncserver
+# REQUIRE: NETWORKING SERVERS DAEMON ldconfig resolv
+ 
+. /etc/rc.subr
+ 
+name=vncserver
+rcvar=vncserver_enable
+ 
+VNCSERVER=/usr/local/bin/vncserver
+ 
+load_rc_config $name
+ 
+start_cmd="vncserver_start"
+stop_cmd="vncserver_stop"
+restart_cmd="vncserver_restart"
+ 
+: ${vncserver_user="root"}
+: ${vncserver_enable="NO"}
+: ${vncserver_display="0"}
+: ${vncserver_depth="24"}
+: ${vncserver_geometry="1920x1080"}
+: ${vncserver_localhost="no"}
+#: ${vncserver_localhost="yes"}
+
+vncserver_start()
+{
+    CMD="$VNCSERVER :${vncserver_display} -depth ${vncserver_depth} -geometry ${vncserver_geometry} -localhost ${vncserver_localhost}"
+    su -l ${vncserver_user} -c "${CMD}"
+}
+ 
+vncserver_stop()
+{
+    CMD="$VNCSERVER -kill :${vncserver_display}"
+    su -l ${vncserver_user} -c "${CMD}"
+}
+
+vncserver_restart()
+{
+    host=$(hostname -s)
+    [ -f "/home/${vncserver_user}/.vnc/${host}:${vncserver_display}.pid" ] && run_rc_command stop
+    run_rc_command start
+}
+
+run_rc_command "$1"
